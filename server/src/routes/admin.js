@@ -81,9 +81,9 @@ router.get('/stats', verifyAdmin, async (req, res) => {
         SELECT 
           COUNT(*) as total_count,
           COUNT(*) FILTER (WHERE status = 'new') as new_count,
-          COUNT(*) FILTER (WHERE status = 'in_progress') as in_progress_count,
-          COUNT(*) FILTER (WHERE status = 'resolved') as resolved_count
+          COUNT(*) FILTER (WHERE status = 'in_progress') as in_progress_count
         FROM suggestions
+        WHERE status != 'resolved'
       `),
       query(`
         SELECT p.*, b.name as branch_name, b.code as branch_code, s.number as semester_number
@@ -95,6 +95,7 @@ router.get('/stats', verifyAdmin, async (req, res) => {
       `),
       query(`
         SELECT * FROM suggestions
+        WHERE status != 'resolved'
         ORDER BY created_at DESC
         LIMIT 5
       `),
@@ -255,16 +256,16 @@ router.delete('/papers/:id', verifyAdmin, async (req, res) => {
   }
 });
 
-// GET /api/admin/suggestions - list feedback
+// GET /api/admin/suggestions - list feedback (auto-excludes resolved items)
 router.get('/suggestions', verifyAdmin, async (req, res) => {
   try {
     const { status } = req.query;
-    let sql = 'SELECT * FROM suggestions';
+    let sql = "SELECT * FROM suggestions WHERE status != 'resolved'";
     const params = [];
 
     if (status && status !== 'all') {
       params.push(status);
-      sql += ` WHERE status = $1`;
+      sql += ` AND status = $1`;
     }
 
     sql += ' ORDER BY created_at DESC';
@@ -277,15 +278,28 @@ router.get('/suggestions', verifyAdmin, async (req, res) => {
   }
 });
 
-// PATCH /api/admin/suggestions/:id - update status
+// PATCH /api/admin/suggestions/:id - update status (resolved auto-deletes / clears suggestion)
 router.patch('/suggestions/:id', verifyAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
 
-    const validStatuses = ['new', 'in_progress', 'resolved', 'archived'];
+    const validStatuses = ['new', 'in_progress', 'resolved'];
     if (!status || !validStatuses.includes(status)) {
       return res.status(400).json({ error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` });
+    }
+
+    // Automatically remove/delete suggestion when marked as resolved
+    if (status === 'resolved') {
+      const delResult = await query('DELETE FROM suggestions WHERE id = $1 RETURNING *', [id]);
+      if (delResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Suggestion not found' });
+      }
+      return res.json({
+        message: 'Suggestion marked as resolved and automatically removed from the dashboard.',
+        deleted: true,
+        id,
+      });
     }
 
     const result = await query(
@@ -304,6 +318,21 @@ router.patch('/suggestions/:id', verifyAdmin, async (req, res) => {
   } catch (error) {
     console.error('Error updating suggestion:', error);
     res.status(500).json({ error: 'Failed to update suggestion' });
+  }
+});
+
+// DELETE /api/admin/suggestions/:id - manually delete suggestion
+router.delete('/suggestions/:id', verifyAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await query('DELETE FROM suggestions WHERE id = $1 RETURNING *', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Suggestion not found' });
+    }
+    res.json({ message: 'Suggestion deleted successfully', id });
+  } catch (error) {
+    console.error('Error deleting suggestion:', error);
+    res.status(500).json({ error: 'Failed to delete suggestion' });
   }
 });
 

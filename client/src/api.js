@@ -24,7 +24,6 @@ export const getUploadUrl = async (filename, fileType) => {
 };
 
 export const uploadPdfToSignedUrl = async (signedUrl, file) => {
-  // Direct upload to Supabase Storage signed URL
   const res = await fetch(signedUrl, {
     method: 'PUT',
     headers: {
@@ -91,6 +90,11 @@ export const getAdminSuggestions = async (params = {}) => {
 
 export const updateAdminSuggestion = async (id, data) => {
   const res = await api.patch(`/api/admin/suggestions/${id}`, data);
+  return res.data;
+};
+
+export const deleteAdminSuggestion = async (id) => {
+  const res = await api.delete(`/api/admin/suggestions/${id}`);
   return res.data;
 };
 

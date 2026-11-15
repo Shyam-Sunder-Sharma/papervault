@@ -12,7 +12,8 @@ const ACADEMIC_YEARS = [
   '2018-19',
 ];
 
-const EXAM_TYPES = ['End Semester', 'Mid Semester', 'Carry Over / Back Paper'];
+// Strictly End Semester and Mid Semester (Back paper / Carryover removed per user request)
+const EXAM_TYPES = ['End Semester', 'Mid Semester'];
 
 export default function UploadModal({ meta, isOpen, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
@@ -61,7 +62,7 @@ export default function UploadModal({ meta, isOpen, onClose, onSuccess }) {
     }
 
     if (selectedFile.size > 15 * 1024 * 1024) {
-      setError('File size exceeds the 15MB limit. Please compress the PDF before uploading.');
+      setError('File size exceeds 15MB limit. Please compress the PDF before uploading.');
       return;
     }
 
@@ -86,28 +87,28 @@ export default function UploadModal({ meta, isOpen, onClose, onSuccess }) {
     }
 
     if (!formData.subject_name.trim() || !formData.subject_code.trim()) {
-      setError('Please provide Subject Name and Subject Code.');
+      setError('Please enter Subject Name and Subject Code.');
       return;
     }
 
     if (!file) {
-      setError('Please upload a PDF question paper.');
+      setError('Please choose a PDF question paper to upload.');
       return;
     }
 
     try {
       setLoading(true);
-      setProgressMsg('Requesting secure direct upload authorization...');
+      setProgressMsg('Requesting direct upload authorization...');
 
       // 1. Get signed upload URL
       const { signedUrl, filePath, fileUrl } = await getUploadUrl(file.name, file.type || 'application/pdf');
 
       // 2. Upload file directly to Supabase Storage bucket
-      setProgressMsg('Uploading PDF directly to secure Supabase storage...');
+      setProgressMsg('Uploading PDF directly to secure cloud storage...');
       await uploadPdfToSignedUrl(signedUrl, file);
 
       // 3. Register paper in database
-      setProgressMsg('Submitting question paper for admin verification...');
+      setProgressMsg('Submitting paper for admin verification...');
       await submitPaper({
         branch_id: parseInt(formData.branch_id),
         semester_id: parseInt(formData.semester_id),
@@ -146,22 +147,23 @@ export default function UploadModal({ meta, isOpen, onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-sm">
-      <div className="relative w-full max-w-xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 overflow-y-auto max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+      <div className="relative w-full max-w-xl bg-[#0d131f] border border-slate-800 rounded-2xl shadow-2xl p-4 sm:p-6 overflow-y-auto max-h-[92dvh]">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-800">
           <div>
-            <h2 className="text-lg font-bold text-white flex items-center space-x-2">
-              <UploadCloud className="w-5 h-5 text-indigo-400" />
+            <h2 className="text-base sm:text-lg font-bold text-white flex items-center space-x-2">
+              <UploadCloud className="w-5 h-5 text-emerald-400" />
               <span>Contribute Question Paper</span>
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Help your fellow UPTTI Kanpur students by uploading previous year papers.
+            <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
+              Upload past semester papers for UPTTI Kanpur students.
             </p>
           </div>
           <button
             onClick={resetAndClose}
-            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+            aria-label="Close dialog"
+            className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
           >
             <X className="w-4 h-4" />
           </button>
@@ -169,26 +171,26 @@ export default function UploadModal({ meta, isOpen, onClose, onSuccess }) {
 
         {success ? (
           <div className="py-8 text-center space-y-4">
-            <div className="w-16 h-16 mx-auto rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+            <div className="w-16 h-16 mx-auto rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
               <CheckCircle2 className="w-8 h-8" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-white">Paper Submitted Successfully!</h3>
-              <p className="text-xs text-slate-400 mt-2 max-w-sm mx-auto">
-                Thank you for contributing! Your upload has been queued for admin verification and will be published once approved.
+              <h3 className="text-base sm:text-lg font-bold text-white">Paper Submitted Successfully!</h3>
+              <p className="text-xs text-slate-400 mt-2 max-w-sm mx-auto leading-relaxed">
+                Thank you for contributing! Your upload has been queued for verification and will appear in the repository once approved.
               </p>
             </div>
             <div className="pt-2">
               <button
                 onClick={resetAndClose}
-                className="px-6 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 transition-all"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/30 transition-all"
               >
-                Close & Return to Repository
+                Return to Repository
               </button>
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="mt-5 space-y-4 text-xs">
+          <form onSubmit={handleSubmit} className="mt-4 space-y-3.5 text-xs">
             {error && (
               <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 flex items-start space-x-2">
                 <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -203,13 +205,13 @@ export default function UploadModal({ meta, isOpen, onClose, onSuccess }) {
                 <select
                   value={formData.branch_id}
                   onChange={(e) => setFormData({ ...formData, branch_id: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors"
                   required
                 >
                   <option value="">Select Branch</option>
                   {meta?.branches?.map((b) => (
                     <option key={b.id} value={b.id}>
-                      {b.name} ({b.code})
+                      {b.code} - {b.name}
                     </option>
                   ))}
                 </select>
@@ -220,7 +222,7 @@ export default function UploadModal({ meta, isOpen, onClose, onSuccess }) {
                 <select
                   value={formData.semester_id}
                   onChange={(e) => setFormData({ ...formData, semester_id: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors"
                   required
                 >
                   <option value="">Select Semester</option>
@@ -233,12 +235,12 @@ export default function UploadModal({ meta, isOpen, onClose, onSuccess }) {
               </div>
             </div>
 
-            {/* Subject Selection / Name */}
+            {/* Subject Name with Auto-suggest */}
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="font-medium text-slate-300">Subject Name *</label>
                 {filteredSubjects.length > 0 && (
-                  <span className="text-[10px] text-indigo-400">Auto-suggest available</span>
+                  <span className="text-[10px] text-emerald-400">Suggestions available</span>
                 )}
               </div>
               <input
@@ -247,7 +249,7 @@ export default function UploadModal({ meta, isOpen, onClose, onSuccess }) {
                 placeholder="e.g. Data Structures or Yarn Manufacture-I"
                 value={formData.subject_name}
                 onChange={handleSubjectSelect}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
+                className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors"
                 required
               />
               <datalist id="subjects-datalist">
@@ -259,7 +261,7 @@ export default function UploadModal({ meta, isOpen, onClose, onSuccess }) {
               </datalist>
             </div>
 
-            {/* Subject Code, Year, Exam Type */}
+            {/* Subject Code, Academic Year & Exam Type (Only End Sem & Mid Sem) */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block font-medium text-slate-300 mb-1">Subject Code *</label>
@@ -268,7 +270,7 @@ export default function UploadModal({ meta, isOpen, onClose, onSuccess }) {
                   placeholder="e.g. BCS-301"
                   value={formData.subject_code}
                   onChange={(e) => setFormData({ ...formData, subject_code: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 uppercase font-mono focus:outline-none focus:border-indigo-500 transition-colors"
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 uppercase font-mono focus:outline-none focus:border-emerald-500 transition-colors"
                   required
                 />
               </div>
@@ -278,7 +280,7 @@ export default function UploadModal({ meta, isOpen, onClose, onSuccess }) {
                 <select
                   value={formData.academic_year}
                   onChange={(e) => setFormData({ ...formData, academic_year: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors"
                   required
                 >
                   {ACADEMIC_YEARS.map((yr) => (
@@ -294,7 +296,7 @@ export default function UploadModal({ meta, isOpen, onClose, onSuccess }) {
                 <select
                   value={formData.exam_type}
                   onChange={(e) => setFormData({ ...formData, exam_type: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors"
                   required
                 >
                   {EXAM_TYPES.map((t) => (
@@ -317,12 +319,12 @@ export default function UploadModal({ meta, isOpen, onClose, onSuccess }) {
                 onDragLeave={() => setDragActive(false)}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
-                className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
+                className={`border-2 border-dashed rounded-2xl p-5 sm:p-6 text-center cursor-pointer transition-all ${
                   dragActive
-                    ? 'border-indigo-500 bg-indigo-500/10'
+                    ? 'border-emerald-500 bg-emerald-500/10'
                     : file
-                    ? 'border-emerald-500/50 bg-emerald-500/5'
-                    : 'border-slate-800 hover:border-slate-700 bg-slate-950/60'
+                    ? 'border-teal-500/60 bg-teal-500/5'
+                    : 'border-slate-800 hover:border-emerald-500/40 bg-slate-950/60'
                 }`}
               >
                 <input
@@ -335,44 +337,44 @@ export default function UploadModal({ meta, isOpen, onClose, onSuccess }) {
 
                 {file ? (
                   <div className="flex items-center justify-center space-x-3">
-                    <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
                       <FileText className="w-6 h-6" />
                     </div>
                     <div className="text-left">
-                      <p className="font-semibold text-white text-xs truncate max-w-xs">{file.name}</p>
+                      <p className="font-semibold text-white text-xs truncate max-w-[200px] sm:max-w-xs">{file.name}</p>
                       <p className="text-[11px] text-slate-400">
-                        {(file.size / (1024 * 1024)).toFixed(2)} MB • Click or drag to replace
+                        {(file.size / (1024 * 1024)).toFixed(2)} MB • Tap or click to replace
                       </p>
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-2">
-                    <div className="w-10 h-10 mx-auto rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+                  <div className="space-y-1.5">
+                    <div className="w-10 h-10 mx-auto rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
                       <UploadCloud className="w-5 h-5" />
                     </div>
                     <p className="text-xs font-semibold text-slate-200">
-                      Click to browse or drag and drop your PDF here
+                      Tap to select or drag PDF question paper
                     </p>
-                    <p className="text-[10px] text-slate-500">Only .pdf documents up to 15MB are supported</p>
+                    <p className="text-[10px] text-slate-500">PDF documents up to 15MB</p>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Action buttons */}
-            <div className="pt-3 flex items-center justify-end space-x-2 border-t border-slate-800">
+            <div className="pt-3 flex flex-col-reverse sm:flex-row items-center justify-end gap-2 border-t border-slate-800">
               <button
                 type="button"
                 onClick={resetAndClose}
                 disabled={loading}
-                className="px-4 py-2 rounded-xl text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 transition-colors"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex items-center space-x-2 px-6 py-2 rounded-xl font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 disabled:opacity-60 transition-all"
+                className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-6 py-2.5 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/30 disabled:opacity-60 transition-all"
               >
                 {loading ? (
                   <>
@@ -382,7 +384,7 @@ export default function UploadModal({ meta, isOpen, onClose, onSuccess }) {
                 ) : (
                   <>
                     <UploadCloud className="w-4 h-4" />
-                    <span>Submit for Approval</span>
+                    <span>Submit for Verification</span>
                   </>
                 )}
               </button>

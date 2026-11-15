@@ -31,25 +31,25 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center px-4 bg-slate-950 text-slate-100 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-8 bg-[#0a0e17] text-slate-100 relative overflow-hidden">
       {/* Background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-violet-600/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] max-w-full h-[280px] bg-emerald-500/10 blur-[130px] rounded-full pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10">
-        <div className="mb-6">
+        <div className="mb-5">
           <Link
             to="/repository"
             className="inline-flex items-center space-x-1.5 text-xs text-slate-400 hover:text-white transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 text-emerald-400" />
             <span>Back to Student Repository</span>
           </Link>
         </div>
 
-        <div className="p-8 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-2xl backdrop-blur-md">
-          {/* Logo / Header */}
-          <div className="text-center mb-8">
-            <div className="w-14 h-14 mx-auto rounded-2xl bg-violet-600/10 text-violet-400 flex items-center justify-center border border-violet-500/20 shadow-inner mb-4">
+        <div className="p-6 sm:p-8 rounded-2xl bg-[#0d131f] border border-slate-800 shadow-2xl backdrop-blur-md">
+          {/* Header */}
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="w-13 h-13 mx-auto rounded-2xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center border border-emerald-500/25 shadow-inner mb-3.5 p-3">
               <ShieldCheck className="w-7 h-7" />
             </div>
             <h1 className="text-xl font-bold text-white tracking-tight">PaperVault CMS</h1>
@@ -73,7 +73,7 @@ export default function AdminLoginPage() {
                   placeholder="e.g. admin"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-violet-500 transition-colors"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition-colors"
                   required
                 />
               </div>
@@ -88,7 +88,7 @@ export default function AdminLoginPage() {
                   placeholder="Enter admin password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-violet-500 transition-colors"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition-colors"
                   required
                 />
               </div>
@@ -97,12 +97,12 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-2.5 rounded-xl font-semibold bg-violet-600 hover:bg-violet-500 text-white shadow-lg shadow-violet-600/25 active:scale-[0.99] disabled:opacity-60 transition-all flex items-center justify-center space-x-2"
+              className="w-full mt-2 py-2.5 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/25 active:scale-[0.99] disabled:opacity-60 transition-all flex items-center justify-center space-x-2"
             >
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Authenticating...</span>
+                  <span>Signing In...</span>
                 </>
               ) : (
                 <span>Sign In to Admin CMS</span>
@@ -110,7 +110,7 @@ export default function AdminLoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-slate-800 text-center">
+          <div className="mt-6 pt-5 border-t border-slate-800/80 text-center">
             <p className="text-[11px] text-slate-500">
               Only authorized UPTTI Kanpur paper moderators and administrators may access this portal.
             </p>
